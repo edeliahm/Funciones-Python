@@ -1,3 +1,29 @@
+###############################################################################################################################################
+###############################################################################################################################################
+"""
+
+Esta función ejecuta los siguientes pasos de forma automática 
+    1. Pivotar filas con los resultados de las analíticas
+    2. Obtener analíticas al momento del ingreso (primera analítica que se hace al momento del ingreso
+    3. Obtener analíticas durante la estancia (se saca el promedio de todas las analíticas que se le hacen al paciente
+    4. Obtener analíticas al momento del alta (última analítica que se hace en la estancia)
+
+###############################################################################################################################################
+###############################################################################################################################################
+
+El resultado final de esta función es un solo dataframe
+Es decir, si se pone el parámetro 'i' se obtiene un dataframe con las analiticas al momento del ingreso de cada episodio y paciente
+
+Consejo
+* La forma de trabajar es sacar los 3 dataframes (ingreso, estancia y alta) y luego hacer un join con la lista original de pacientes y episodios
+* Cada episodio corresponde a un paciente
+* EL número total de final y el número total de episodios únicos tienen que ser iguales en el dataframe final de las analíticas
+* Solo debe haber una analitica de ingreso, estacia y alta por episodio
+
+"""
+###############################################################################################################################################
+###############################################################################################################################################
+
 # función para sacar solo analíticas al momento del ingreso
 import pandas as pd
 
