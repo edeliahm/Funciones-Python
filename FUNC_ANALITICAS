@@ -1,0 +1,164 @@
+# función para sacar solo analíticas al momento del ingreso
+import pandas as pd
+
+def analiticas(df, tipo):
+    """
+    Función para pivotar las columnas de resultado de analítica y
+    para obtener resultados al momento del ingreso, durante la estancia y al momento del alta
+
+    Para todo funcione correctamente se asume que se extrayeron todas las analíticas hechas en el transcurso del ingreso
+
+    Posibles valores para parámetro 'tipo':
+        1. i (ingreso)
+        2. a (alta)
+        3. e (estancia)
+
+    Las columnas de df de analíticas deben seguir el siguiente orden
+        1. id_paciente
+        2. id_episodio
+        3. fecha_muestra
+        4. numMuestra
+        5. nombrePrueba (no pueden haber valores nulos o en blanco en esta columna)
+        6. La columna del resultado de la prueba puede tener cualquier nombre
+
+    """
+    # we need to drop null or blank values within our df first
+    df.dropna(inplace=True)
+
+    # making sure we don´t have any duplicate records (data from sql queries often have duplicate records)
+    df.drop_duplicates(inplace=True)
+
+    # change column names based on order
+    df.rename(columns={ df.columns[0]: 'id_paciente' }, inplace = True)
+    df.rename(columns={ df.columns[1]: 'id_episodio' }, inplace = True)
+    df.rename(columns={ df.columns[2]: 'fecha_muestra' }, inplace = True)
+    df.rename(columns={ df.columns[3]: 'nummuestra' }, inplace = True)
+    df.rename(columns={ df.columns[4]: 'nombreprueba' }, inplace = True)
+    df.rename(columns={ df.columns[5]: 'resultado_prueba' }, inplace = True)
+
+    # change all column name to lower case to make everything easier
+    df.columns = df.columns.str.lower()
+
+    # change data type format
+    df.nummuestra = df.nummuestra.astype(str)
+
+    # change column name before pivot to avoid having an index with a weird name
+    df.rename(columns={'nombreprueba': ''}, inplace=True)
+
+    # select last column of df and change name so that the function runs smoothly
+    df.columns = [*df.columns[:-1], 'resultado_prueba']
+
+    # convert resultado_prueba to numeric data type to make calculations if necessary
+    df['resultado_prueba'] = df['resultado_prueba'].apply(pd.to_numeric, errors='coerce')
+
+    # Remove rows where resultado_prueba is not numeric
+    df = df.dropna(subset=['resultado_prueba'])
+
+    # pivot columns of interest first
+    df = df.pivot(index=['id_paciente', 'id_episodio','fecha_muestra', 'nummuestra'], columns='', values='resultado_prueba')
+
+    # sort records
+    df.sort_values(by=['id_paciente', 'id_episodio', 'fecha_muestra', 'nummuestra'], ascending=True, inplace=True)
+
+    # reset index so that id_paciente, id_episodio and nummuestra get set as regular columns and not index
+    df.reset_index(inplace=True)
+
+    # formatting new columns that appeared after the pivot
+    df.columns = df.columns.str.lower()
+
+    # filling blank spaces in column names
+    df.columns = df.columns.str.replace(' ', '_')
+
+    # reset index once again
+    df.reset_index(inplace=True, drop=True)
+
+    # if one particular bloodtest has more than 60% of results missing then we drop that row
+    threshold = len(df.columns) * 0.6
+
+    # Filter out rows with more than 60% missing values
+    df = df[df.isnull().sum(axis=1) <= threshold]      
+
+    # data processing
+    if tipo == 'i':
+
+        # resultados al momento del ingreso (df efue ordenada por id_paciente, id_ingreso y nummuestra)
+        # the smaller the nummuestra the sooner the bloodtest was made
+        df = df.drop_duplicates(['id_paciente', 'id_episodio'], keep='first')
+
+        # Step 1: select all columns in df that need to be modified
+        exclude_columns = ['id_paciente', 'id_episodio']
+        columns_to_modify = [col for col in df.columns if col not in exclude_columns]
+
+        # Step 2: Define an empty dictionary to hold the column mappings
+        column_mapping = {}
+
+        # Step 3: Iterate over the column names and create the column mappings
+        for column in columns_to_modify:
+            new_column = column.replace('%', 'pct') + '_ingreso'
+            column_mapping[column] = new_column
+
+        # Step 4: Rename the selected columns using the column_mapping dictionary
+        df = df.rename(columns=column_mapping)
+
+        # reset index again...
+        df.reset_index(inplace=True, drop=True)
+
+        return df
+
+    elif tipo == 'a':
+
+        # resultados al momento del ingreso (df efue ordenada por id_paciente, id_ingreso y nummuestra)
+        # the smaller the nummuestra the sooner the bloodtest was made
+        df = df.drop_duplicates(['id_paciente', 'id_episodio'], keep='last')
+
+        # Step 1: select all columns in df that need to be modified
+        exclude_columns = ['id_paciente', 'id_episodio']
+        columns_to_modify = [col for col in df.columns if col not in exclude_columns]
+
+        # Step 2: Define an empty dictionary to hold the column mappings
+        column_mapping = {}
+
+        # Step 3: Iterate over the column names and create the column mappings
+        for column in columns_to_modify:
+            new_column = column.replace('%', 'pct') + '_alta'
+            column_mapping[column] = new_column
+
+        # Step 4: Rename the selected columns using the column_mapping dictionary
+        df = df.rename(columns=column_mapping)
+
+        # reset index again...
+        df.reset_index(inplace=True, drop=True)
+
+        return df
+    
+    elif tipo == 'e':
+
+        # delete columns (already used to sort values)
+        del df['nummuestra']
+
+        # Step 1: select all columns in df that need to be modified
+        exclude_columns = ['id_paciente', 'id_episodio']
+        columns_to_modify = [col for col in df.columns if col not in exclude_columns]
+
+        # Step 2: Define an empty dictionary to hold the column mappings
+        column_mapping = {}
+
+        # Step 3: Iterate over the column names and create the column mappings
+        for column in columns_to_modify:
+            new_column = column.replace('%', 'pct') + '_estancia'
+            column_mapping[column] = new_column
+
+        # Step 4: Rename the selected columns using the column_mapping dictionary
+        df = df.rename(columns=column_mapping)
+
+        # reset index again...
+        df.reset_index(inplace=True, drop=True)
+
+        # group by: we must get the average result per id_paciente and id_episodio
+        df = df.groupby(['id_paciente', 'id_episodio'])
+        df = df.mean()
+
+        # reset index
+        df.reset_index(inplace=True)
+
+        return df 
