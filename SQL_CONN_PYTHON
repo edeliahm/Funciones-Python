@@ -1,4 +1,4 @@
-def sql_server_qa_conn(query_var, item_name):
+def sql_server_qa_conn(query_var, item_name, usuario, psw):
     """
     Function to connect to HOSMA-DOCTOR db in the DOCTORIS-QA server
     Function automatically imports necessary packages for SQLalchemy to function properly
@@ -8,6 +8,8 @@ def sql_server_qa_conn(query_var, item_name):
             * Pacientes
             * Tratamientos
             * Analíticas
+    Parámetro 3 --> usuario
+    Parámetro 4 --> constraseña
 
     """
     import sys
@@ -26,8 +28,8 @@ def sql_server_qa_conn(query_var, item_name):
     driver = 'ODBC Driver 17 for SQL Server'
     server = 'DOCTORIS-QA'
     database = 'HOSMA-DOCTOR'
-    username = 'HM_PER_EmilianoDelia'
-    password = 'yKEcPtYJ4XIpyxNH5nMa'
+    username = usuario
+    password = psw
 
     # Build the connection string
     conn_str = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver={driver}'
