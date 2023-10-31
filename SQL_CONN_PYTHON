@@ -1,4 +1,5 @@
 ######################################################################################
+"""
 
     Función para generar una conexión con DOCTORIS-QA usando SQLAlchemy en Python 
 
@@ -18,6 +19,8 @@ El punto de esta función es ejecutar los siguientes pasos de forma automática
     2. nombre que quieres que tenga que el resultado de la query (solo para referencia)
     3. usuario para acceder a QA
     4. contraseña para acceder a QA
+
+"""
 
 ######################################################################################
 ######################################################################################
