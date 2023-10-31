@@ -1,3 +1,27 @@
+######################################################################################
+
+    Función para generar una conexión con DOCTORIS-QA usando SQLAlchemy en Python 
+
+######################################################################################
+######################################################################################
+
+El punto de esta función es ejecutar los siguientes pasos de forma automática
+    1. Generar la conexión con QA 
+    2. Sacar los datos de QA
+    3. Almacenar los datos en un dataframe
+
+######################################################################################
+######################################################################################
+
+4 parámetros
+    1. nombre de la variable en donde se almacena la query
+    2. nombre que quieres que tenga que el resultado de la query (solo para referencia)
+    3. usuario para acceder a QA
+    4. contraseña para acceder a QA
+
+######################################################################################
+######################################################################################
+
 def sql_server_qa_conn(query_var, item_name, usuario, psw):
     """
     Function to connect to HOSMA-DOCTOR db in the DOCTORIS-QA server
