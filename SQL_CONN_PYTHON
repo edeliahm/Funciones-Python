@@ -1,0 +1,55 @@
+def sql_server_qa_conn(query_var, item_name):
+    """
+    Function to connect to HOSMA-DOCTOR db in the DOCTORIS-QA server
+    Function automatically imports necessary packages for SQLalchemy to function properly
+
+    Parámetro 1 --> query_var: name of the variable used to store the SQL query
+    Parámetro 2 --> item_name: define a name based on the nature of the data (poner entre comillas), for example:
+            * Pacientes
+            * Tratamientos
+            * Analíticas
+
+    """
+    import sys
+    import warnings
+    warnings.filterwarnings("ignore")
+
+    import pyodbc
+    import sqlalchemy
+    import pandas as pd
+    import urllib
+    from sqlalchemy import create_engine
+
+    print('All necessary packages to generate connection to db successfully imported')
+
+    # Define the parameters for the connection string
+    driver = 'ODBC Driver 17 for SQL Server'
+    server = 'DOCTORIS-QA'
+    database = 'HOSMA-DOCTOR'
+    username = 'HM_PER_EmilianoDelia'
+    password = 'yKEcPtYJ4XIpyxNH5nMa'
+
+    # Build the connection string
+    conn_str = f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver={driver}'
+
+    # Create the engine
+    engine = create_engine(conn_str)
+    print('Engine created')
+
+    # Test the connection
+    conn = engine.connect()
+
+    print(f"Connection established with {server} server and {database} database")
+
+    # run query
+    df = pd.read_sql_query(query_var, conn)
+
+    # item name
+    item_name = item_name
+
+    # messages
+    print('Query ran succesfully')
+    print(f'Data ({item_name}) succesfully saved in variable')
+
+    return df
+
